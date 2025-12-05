@@ -1,0 +1,62 @@
+{% extends 'user/base.html' %}
+
+{% block title %}My Books - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">
+        <i class="fa-solid fa-book-open me-2"></i>My Issued Books
+    </h2>
+
+    {% if transactions %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Book</th>
+                    <th>Author</th>
+                    <th>Issue Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <strong>{{ transaction.book.title }}</strong>
+                        {% if transaction.book.image %}
+                            <br><img src="{{ transaction.book.image.url }}" alt="{{ transaction.book.title }}" 
+                                   class="img-thumbnail mt-2" style="max-width: 100px;">
+                        {% endif %}
+                    </td>
+                    <td>{{ transaction.book.author }}</td>
+                    <td>{{ transaction.issue_date }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'return_book' transaction.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success" 
+                                    onclick="return confirm('Are you sure you want to return this book?')">
+                                <i class="fa-solid fa-undo me-1"></i>Return
+                            </button>
+                        </form>
+                        <a href="{% url 'book_detail' transaction.book.id %}" class="btn btn-sm btn-info">
+                            <i class="fa-solid fa-eye me-1"></i>View
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="fa-solid fa-book-open fa-3x mb-3"></i>
+        <h4>No books issued</h4>
+        <p>You haven't issued any books yet. <a href="{% url 'user_home' %}">Browse our collection</a> to get started!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

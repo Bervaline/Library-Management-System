@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Issue Book{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fa-solid fa-book-open me-2"></i>Issue a Book
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Member <span class="text-danger">*</span></label>
+                        <select name="member" class="form-select" required>
+                            <option value="">Select a member...</option>
+                            {% for m in members %}
+                            <option value="{{ m.id }}">{{ m.full_name }} ({{ m.email }})</option>
+                            {% endfor %}
+                        </select>
+                        {% if not members %}
+                        <small class="text-danger">No members available. <a href="{% url 'add_member' %}">Add a member first</a></small>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Book <span class="text-danger">*</span></label>
+                        <select name="book" class="form-select" required>
+                            <option value="">Select a book...</option>
+                            {% for b in books %}
+                            <option value="{{ b.id }}">{{ b.title }} by {{ b.author }} ({{ b.available_copies }} copies available)</option>
+                            {% endfor %}
+                        </select>
+                        {% if not books %}
+                        <small class="text-danger">No books available. <a href="{% url 'add_book' %}">Add a book first</a></small>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        <strong>Note:</strong> Only books with available copies are shown. The available copies count will be automatically reduced when the book is issued.
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'transactions' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" {% if not members or not books %}disabled{% endif %}>
+                            <i class="fa-solid fa-check me-2"></i>Issue Book
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

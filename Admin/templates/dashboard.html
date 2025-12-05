@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Total Books Card -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0">{{ total_books }}</h3>
+                        <p class="mb-0">Total Books</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-book fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Members Card -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0">{{ total_members }}</h3>
+                        <p class="mb-0">Total Members</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-users fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issued Books Card -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-warning shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0">{{ issued_books }}</h3>
+                        <p class="mb-0">Issued Books</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-book-open fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Returned Books Card -->
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-info shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0">{{ returned_books }}</h3>
+                        <p class="mb-0">Returned Books</p>
+                    </div>
+                    <div>
+                        <i class="fa-solid fa-check-circle fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Additional Stats -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fa-solid fa-chart-bar me-2"></i>Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-receipt me-2"></i>Total Transactions</span>
+                        <span class="badge bg-primary rounded-pill">{{ total_transactions }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-exclamation-triangle me-2"></i>Low Stock Books</span>
+                        <span class="badge bg-danger rounded-pill">{{ low_stock_books }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-percent me-2"></i>Return Rate</span>
+                        <span class="badge bg-success rounded-pill">
+                            {{ return_rate|floatformat:1 }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fa-solid fa-bolt me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'add_book' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-plus me-2"></i>Add New Book
+                    </a>
+                    <a href="{% url 'add_member' %}" class="btn btn-success">
+                        <i class="fa-solid fa-user-plus me-2"></i>Add New Member
+                    </a>
+                    <a href="{% url 'issue_book' %}" class="btn btn-warning">
+                        <i class="fa-solid fa-book-open me-2"></i>Issue a Book
+                    </a>
+                    <a href="{% url 'transactions' %}" class="btn btn-info">
+                        <i class="fa-solid fa-list me-2"></i>View All Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Transactions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Recent Transactions</h5>
+                <a href="{% url 'transactions' %}" class="btn btn-sm btn-light">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Book</th>
+                                <th>Issue Date</th>
+                                <th>Return Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>{{ transaction.member.full_name }}</td>
+                                <td>{{ transaction.book.title }}</td>
+                                <td>{{ transaction.issue_date }}</td>
+                                <td>{{ transaction.return_date|default:"--" }}</td>
+                                <td>
+                                    {% if transaction.status == "Issued" %}
+                                        <span class="badge bg-warning">Issued</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Returned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fa-solid fa-inbox fa-2x mb-2"></i><br>
+                    No transactions yet.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

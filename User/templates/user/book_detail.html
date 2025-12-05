@@ -1,0 +1,88 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            {% if book.image %}
+                <img src="{{ book.image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
+            {% else %}
+                <div class="bg-secondary rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fa-solid fa-book fa-5x text-white"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-8">
+            <h1 class="mb-3">{{ book.title }}</h1>
+            <p class="lead">by <strong>{{ book.author }}</strong></p>
+            
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Book Information</h5>
+                    <table class="table">
+                        <tr>
+                            <th>ISBN:</th>
+                            <td>{{ book.isbn }}</td>
+                        </tr>
+                        <tr>
+                            <th>Published Date:</th>
+                            <td>{{ book.published_date }}</td>
+                        </tr>
+                        <tr>
+                            <th>Available Copies:</th>
+                            <td>
+                                {% if book.available_copies > 0 %}
+                                    <span class="badge bg-success">{{ book.available_copies }} copies available</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Not available</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+                {% if user_has_book %}
+                    <div class="alert alert-info">
+                        <i class="fa-solid fa-info-circle me-2"></i>
+                        <strong>You have this book issued!</strong>
+                        <p class="mb-0 mt-2">Issued on: {{ user_transaction.issue_date }}</p>
+                        <a href="{% url 'my_books' %}" class="btn btn-sm btn-primary mt-2">
+                            View My Books
+                        </a>
+                    </div>
+                {% elif book.available_copies > 0 %}
+                    <form method="POST" action="{% url 'request_book' book.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fa-solid fa-book-open me-2"></i>Request This Book
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                        This book is currently not available. Please check back later.
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-sign-in-alt me-2"></i>
+                    Please <a href="{% url 'user_login' %}">login</a> or 
+                    <a href="{% url 'register' %}">register</a> to request this book.
+                </div>
+            {% endif %}
+
+            <div class="mt-3">
+                <a href="{% url 'user_home' %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrow-left me-2"></i>Back to Books
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,104 @@
+{% extends 'user/base.html' %}
+
+{% block title %}My Profile - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h4>{{ member.full_name }}</h4>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    <a href="{% url 'update_profile' %}" class="btn btn-primary">
+                        <i class="fa-solid fa-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card shadow mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Issued Books</span>
+                            <span class="badge bg-warning">{{ issued_count }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Returned Books</span>
+                            <span class="badge bg-success">{{ returned_count }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between">
+                            <span>Total Transactions</span>
+                            <span class="badge bg-info">{{ total_transactions }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th width="30%">Full Name:</th>
+                            <td>{{ member.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ member.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>{{ member.phone }}</td>
+                        </tr>
+                        <tr>
+                            <th>Address:</th>
+                            <td>{{ member.address|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date Joined:</th>
+                            <td>{{ member.date_joined }}</td>
+                        </tr>
+                        <tr>
+                            <th>Username:</th>
+                            <td>{{ user.username }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card shadow mt-3">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'my_books' %}" class="btn btn-outline-primary">
+                            <i class="fa-solid fa-book-open me-2"></i>My Issued Books
+                        </a>
+                        <a href="{% url 'my_transactions' %}" class="btn btn-outline-info">
+                            <i class="fa-solid fa-history me-2"></i>Transaction History
+                        </a>
+                        <a href="{% url 'user_home' %}" class="btn btn-outline-success">
+                            <i class="fa-solid fa-search me-2"></i>Browse Books
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
