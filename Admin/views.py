@@ -28,6 +28,8 @@ def add_book(request):
             isbn = request.POST.get('isbn')
             published_date = request.POST.get('published_date')
             available_copies = request.POST.get('available_copies')
+            category = request.POST.get('category', 'Other')
+            description = request.POST.get('description', '')
             image = request.FILES.get('image')
 
             Book.objects.create(
@@ -36,6 +38,8 @@ def add_book(request):
                 isbn=isbn,
                 published_date=published_date,
                 available_copies=available_copies,
+                category=category,
+                description=description,
                 image=image
             )
             messages.success(request, 'Book added successfully!')
@@ -62,6 +66,8 @@ def update(request, id):
             book.isbn = request.POST.get('isbn')
             book.published_date = request.POST.get('published_date')
             book.available_copies = request.POST.get('available_copies')
+            book.category = request.POST.get('category', 'Other')
+            book.description = request.POST.get('description', '')
             if 'image' in request.FILES:
                 book.image = request.FILES.get('image')
             book.save()

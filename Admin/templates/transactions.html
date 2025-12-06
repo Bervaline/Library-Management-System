@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between mb-4">
     <h3>Book Transactions</h3>
-    <a href="{% url 'issue_book' %}" class="btn btn-primary">
+    <a href="{% url 'issue_book' %}" class="btn" style="background-color: #004B49; color: white;">
         <i class="fa-solid fa-plus me-2"></i>Issue Book
     </a>
 </div>
@@ -71,10 +71,10 @@
                         </td>
                         <td>
                             {% if t.status == "Issued" %}
-                            <a href="{% url 'return_book' t.id %}" class="btn btn-sm btn-info" 
-                               onclick="return confirm('Mark this book as returned?')">
-                                <i class="fa-solid fa-check me-1"></i>Mark Return
-                            </a>
+                <a href="{% url 'return_book' t.id %}" class="btn btn-sm" style="background-color: #006B66; color: white;" 
+                   onclick="return confirm('Mark this book as returned?')">
+                    <i class="fa-solid fa-check me-1"></i>Mark Return
+                </a>
                             {% endif %}
                             <a href="{% url 'delete_transaction' t.id %}"
                                class="btn btn-sm btn-danger"

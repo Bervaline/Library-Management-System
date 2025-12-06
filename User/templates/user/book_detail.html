@@ -28,6 +28,10 @@
                             <td>{{ book.isbn }}</td>
                         </tr>
                         <tr>
+                            <th>Category:</th>
+                            <td><span class="badge bg-info">{{ book.category }}</span></td>
+                        </tr>
+                        <tr>
                             <th>Published Date:</th>
                             <td>{{ book.published_date }}</td>
                         </tr>
@@ -41,6 +45,12 @@
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if book.description %}
+                        <tr>
+                            <th>Description:</th>
+                            <td>{{ book.description }}</td>
+                        </tr>
+                        {% endif %}
                     </table>
                 </div>
             </div>
@@ -51,14 +61,14 @@
                         <i class="fa-solid fa-info-circle me-2"></i>
                         <strong>You have this book issued!</strong>
                         <p class="mb-0 mt-2">Issued on: {{ user_transaction.issue_date }}</p>
-                        <a href="{% url 'my_books' %}" class="btn btn-sm btn-primary mt-2">
+                        <a href="{% url 'my_books' %}" class="btn btn-sm mt-2" style="background-color: #004B49; color: white;">
                             View My Books
                         </a>
                     </div>
                 {% elif book.available_copies > 0 %}
                     <form method="POST" action="{% url 'request_book' book.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success btn-lg">
+                        <button type="submit" class="btn btn-lg" style="background-color: #004B49; color: white;">
                             <i class="fa-solid fa-book-open me-2"></i>Request This Book
                         </button>
                     </form>

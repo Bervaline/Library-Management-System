@@ -6,10 +6,10 @@
 {% block content %}
 <div class="container">
     <!-- Hero Section -->
-    <div class="jumbotron bg-light p-5 rounded mb-4">
-        <h1 class="display-4">Welcome to Our Library</h1>
-        <p class="lead">Discover and borrow books from our extensive collection</p>
-        <hr class="my-4">
+    <div class="jumbotron p-5 rounded mb-4" style="background-color: rgba(255, 255, 255, 0.9); border: 2px solid #004B49;">
+        <h1 class="display-4" style="color: #2C2C2C;">Welcome to Our Library</h1>
+        <p class="lead" style="color: #2C2C2C;">Discover and borrow books from our extensive collection</p>
+        <hr class="my-4" style="border-color: #D4AF37;">
         
         <!-- Search Form -->
         <form method="GET" action="{% url 'user_home' %}" class="row g-3">
@@ -19,7 +19,7 @@
                        value="{{ search_query }}">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-lg w-100">
+                <button type="submit" class="btn btn-lg w-100" style="background-color: #004B49; color: white;">
                     <i class="fa-solid fa-search me-2"></i>Search
                 </button>
             </div>
@@ -53,6 +53,7 @@
                         <small>by {{ book.author }}</small>
                     </p>
                     <p class="card-text">
+                        <span class="badge bg-secondary mb-2">{{ book.category }}</span>
                         {% if book.available_copies > 0 %}
                             <span class="badge badge-available">
                                 <i class="fa-solid fa-check-circle me-1"></i>{{ book.available_copies }} Available
@@ -64,7 +65,7 @@
                         {% endif %}
                     </p>
                     <div class="mt-auto">
-                        <a href="{% url 'book_detail' book.id %}" class="btn btn-primary w-100">
+                        <a href="{% url 'book_detail' book.id %}" class="btn w-100" style="background-color: #004B49; color: white;">
                             <i class="fa-solid fa-eye me-2"></i>View Details
                         </a>
                     </div>

@@ -4,8 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+import json
 
 from Admin.models import Book, Member, Transaction
+from .chatbot import BookRecommendationChatbot
 
 
 def home(request):
@@ -308,3 +311,78 @@ def update_profile(request):
         'user': request.user,
     }
     return render(request, 'user/update_profile.html', context)
+
+
+def chatbot(request):
+    """Book recommendation chatbot page"""
+    return render(request, 'user/chatbot.html')
+
+
+def chatbot_query(request):
+    """Handle chatbot queries via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            query = data.get('query', '').strip()
+            
+            if not query:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Please enter a query.',
+                    'books': []
+                })
+            
+            # Initialize chatbot
+            chatbot = BookRecommendationChatbot(user=request.user)
+            
+            # Process query
+            result = chatbot.process_query(query)
+            
+            # Format response
+            response_data = {
+                'success': True,
+                'type': result.get('type', 'general'),
+                'message': result.get('message', ''),
+                'books': []
+            }
+            
+            # Format books for JSON response
+            for book in result.get('books', []):
+                response_data['books'].append({
+                    'id': book.id,
+                    'title': book.title,
+                    'author': book.author,
+                    'category': book.category,
+                    'available_copies': book.available_copies,
+                    'image_url': book.image.url if book.image else None,
+                    'description': book.description or '',
+                })
+            
+            # Add reference book if exists
+            if 'reference_book' in result:
+                ref_book = result['reference_book']
+                response_data['reference_book'] = {
+                    'id': ref_book.id,
+                    'title': ref_book.title,
+                    'author': ref_book.author,
+                    'category': ref_book.category,
+                }
+            
+            # Add category if exists
+            if 'category' in result:
+                response_data['category'] = result['category']
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error processing query: {str(e)}',
+                'books': []
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method.',
+        'books': []
+    })

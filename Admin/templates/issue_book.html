@@ -6,7 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header" style="background-color: #004B49; color: white; border-bottom: 3px solid #D4AF37;">
                 <h5 class="mb-0">
                     <i class="fa-solid fa-book-open me-2"></i>Issue a Book
                 </h5>
@@ -50,7 +50,7 @@
                         <a href="{% url 'transactions' %}" class="btn btn-secondary">
                             <i class="fa-solid fa-times me-2"></i>Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary" {% if not members or not books %}disabled{% endif %}>
+                        <button type="submit" class="btn" style="background-color: #004B49; color: white;" {% if not members or not books %}disabled{% endif %}>
                             <i class="fa-solid fa-check me-2"></i>Issue Book
                         </button>
                     </div>

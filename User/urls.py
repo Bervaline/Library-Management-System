@@ -18,4 +18,8 @@ urlpatterns = [
     path('return-book/<int:id>/', views.return_book, name='return_book'),
     path('profile/', views.profile, name='profile'),
     path('update-profile/', views.update_profile, name='update_profile'),
+    
+    # Chatbot
+    path('chatbot/', views.chatbot, name='chatbot'),
+    path('chatbot/query/', views.chatbot_query, name='chatbot_query'),
 ]

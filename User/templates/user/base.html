@@ -11,46 +11,67 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
     <style>
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: #E6D5B8;
         }
         .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #004B49 !important;
+            border-bottom: 3px solid #D4AF37;
         }
         .navbar-brand {
             font-weight: bold;
             font-size: 1.5rem;
+            color: white !important;
+        }
+        .navbar-brand:hover {
+            color: #D4AF37 !important;
         }
         .main-content {
             flex: 1;
             padding: 2rem 0;
+            background-color: #E6D5B8;
         }
         .footer {
-            background-color: #343a40;
+            background-color: #004B49 !important;
             color: white;
             padding: 1.5rem 0;
             margin-top: auto;
+            border-top: 3px solid #D4AF37;
         }
         .book-card {
             transition: transform 0.3s, box-shadow 0.3s;
             height: 100%;
+            background-color: white;
+            border: 1px solid rgba(0, 75, 73, 0.1);
         }
         .book-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 16px rgba(0, 75, 73, 0.2);
+            border-color: #D4AF37;
         }
         .book-image {
             height: 300px;
             object-fit: cover;
         }
         .badge-available {
-            background-color: #28a745;
+            background-color: #28a745 !important;
         }
         .badge-unavailable {
-            background-color: #dc3545;
+            background-color: #dc3545 !important;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        .nav-link:hover {
+            color: #D4AF37 !important;
         }
     </style>
 </head>
@@ -69,6 +90,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'user_home' %}">
                             <i class="fa-solid fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'chatbot' %}">
+                            <i class="fa-solid fa-robot me-1"></i>Book Chatbot
                         </a>
                     </li>
                     {% if user.is_authenticated %}

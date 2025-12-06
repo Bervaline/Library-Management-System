@@ -7,11 +7,11 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card shadow">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0">
-                        <i class="fa-solid fa-edit me-2"></i>Update Profile
-                    </h4>
-                </div>
+            <div class="card-header" style="background-color: #D4AF37; color: #2C2C2C; border-bottom: 3px solid #004B49;">
+                <h4 class="mb-0">
+                    <i class="fa-solid fa-edit me-2"></i>Update Profile
+                </h4>
+            </div>
                 <div class="card-body">
                     <form method="POST">
                         {% csrf_token %}
@@ -61,9 +61,9 @@
                             <a href="{% url 'profile' %}" class="btn btn-secondary">
                                 <i class="fa-solid fa-times me-2"></i>Cancel
                             </a>
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fa-solid fa-save me-2"></i>Update Profile
-                            </button>
+                        <button type="submit" class="btn" style="background-color: #D4AF37; color: #2C2C2C;">
+                            <i class="fa-solid fa-save me-2"></i>Update Profile
+                        </button>
                         </div>
                     </form>
                 </div>

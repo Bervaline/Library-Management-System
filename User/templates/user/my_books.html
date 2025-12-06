@@ -34,14 +34,14 @@
                     <td>{{ transaction.book.author }}</td>
                     <td>{{ transaction.issue_date }}</td>
                     <td>
-                        <form method="POST" action="{% url 'return_book' transaction.id %}" class="d-inline">
+                            <form method="POST" action="{% url 'return_book' transaction.id %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-success" 
+                            <button type="submit" class="btn btn-sm" style="background-color: #28a745; color: white;" 
                                     onclick="return confirm('Are you sure you want to return this book?')">
                                 <i class="fa-solid fa-undo me-1"></i>Return
                             </button>
                         </form>
-                        <a href="{% url 'book_detail' transaction.book.id %}" class="btn btn-sm btn-info">
+                        <a href="{% url 'book_detail' transaction.book.id %}" class="btn btn-sm" style="background-color: #006B66; color: white;">
                             <i class="fa-solid fa-eye me-1"></i>View
                         </a>
                     </td>

@@ -1,0 +1,357 @@
+{% extends 'user/base.html' %}
+{% load static %}
+
+{% block title %}Book Recommendation Chatbot - Library Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header" style="background-color: #004B49; color: white; border-bottom: 3px solid #D4AF37;">
+                    <h4 class="mb-0">
+                        <i class="fa-solid fa-robot me-2"></i>Book Recommendation Chatbot
+                    </h4>
+                    <small>Ask me anything about books! I can help you find similar books, popular books, and personalized recommendations.</small>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Chat Messages Container -->
+                    <div id="chat-messages" class="p-4" style="height: 500px; overflow-y: auto; background-color: #E6D5B8;">
+                        <!-- Welcome Message -->
+                        <div class="chat-message bot-message mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="bot-avatar me-3">
+                                    <i class="fa-solid fa-robot fa-2x text-primary"></i>
+                                </div>
+                                <div class="message-content flex-grow-1">
+                                    <div class="message-bubble bg-white p-3 rounded shadow-sm">
+                                        <p class="mb-0"><strong>Hello! 👋</strong></p>
+                                        <p class="mb-0">I'm your book recommendation assistant. I can help you:</p>
+                                        <ul class="mb-0 mt-2">
+                                            <li>Find books similar to ones you like</li>
+                                            <li>Discover most borrowed books by category</li>
+                                            <li>Get beginner-friendly recommendations</li>
+                                            <li>Receive personalized suggestions based on your reading history</li>
+                                        </ul>
+                                        <p class="mb-0 mt-2"><strong>Try asking:</strong></p>
+                                        <ul class="mb-0">
+                                            <li>"Suggest a book similar to Harry Potter"</li>
+                                            <li>"What are the most borrowed books in History category?"</li>
+                                            <li>"Recommend books for beginners in programming"</li>
+                                            <li>"What books do you recommend?"</li>
+                                        </ul>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">Just now</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="card-footer bg-white">
+                        <form id="chat-form" class="d-flex gap-2">
+                            {% csrf_token %}
+                            <input type="text" id="chat-input" class="form-control" 
+                                   placeholder="Ask me about books..." autocomplete="off">
+                            <button type="submit" class="btn" id="send-btn" style="background-color: #004B49; color: white;">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Send
+                            </button>
+                        </form>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fa-solid fa-lightbulb me-1"></i>
+                                <strong>Tip:</strong> Be specific! Mention book titles, categories, or topics for better results.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-message {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .bot-message .message-bubble {
+        border-left: 4px solid #004B49;
+    }
+    
+    .user-message {
+        flex-direction: row-reverse;
+    }
+    
+    .user-message .message-bubble {
+        background: linear-gradient(135deg, #004B49 0%, #00332F 100%) !important;
+        color: white;
+        border-left: 4px solid #D4AF37;
+    }
+    
+    .user-message .message-content {
+        text-align: right;
+    }
+    
+    .book-card-mini {
+        transition: transform 0.2s;
+        cursor: pointer;
+    }
+    
+    .book-card-mini:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+    
+    #chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    #chat-messages::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    #chat-messages::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+    
+    #chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    .loading-dots {
+        display: inline-block;
+    }
+    
+    .loading-dots span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: #004B49;
+        margin: 0 2px;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+        40% {
+            transform: scale(1);
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const sendBtn = document.getElementById('send-btn');
+    
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    function addMessage(message, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${isUser ? 'user-message' : 'bot-message'} mb-3`;
+        
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        if (isUser) {
+            messageDiv.innerHTML = `
+                <div class="d-flex align-items-start">
+                    <div class="message-content flex-grow-1">
+                        <div class="message-bubble bg-white p-3 rounded shadow-sm">
+                            <p class="mb-0">${message}</p>
+                        </div>
+                        <small class="text-muted mt-1 d-block">${timestamp}</small>
+                    </div>
+                    <div class="user-avatar ms-3">
+                        <i class="fa-solid fa-user fa-2x text-secondary"></i>
+                    </div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="d-flex align-items-start">
+                    <div class="bot-avatar me-3">
+                        <i class="fa-solid fa-robot fa-2x text-primary"></i>
+                    </div>
+                    <div class="message-content flex-grow-1">
+                        <div class="message-bubble bg-white p-3 rounded shadow-sm">
+                            ${message}
+                        </div>
+                        <small class="text-muted mt-1 d-block">${timestamp}</small>
+                    </div>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function addLoadingMessage() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-message';
+        loadingDiv.className = 'chat-message bot-message mb-3';
+        loadingDiv.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="bot-avatar me-3">
+                    <i class="fa-solid fa-robot fa-2x text-primary"></i>
+                </div>
+                <div class="message-content flex-grow-1">
+                    <div class="message-bubble bg-white p-3 rounded shadow-sm">
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(loadingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function removeLoadingMessage() {
+        const loadingMsg = document.getElementById('loading-message');
+        if (loadingMsg) {
+            loadingMsg.remove();
+        }
+    }
+    
+    function displayBooks(books, message) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message bot-message mb-3';
+        
+        let booksHTML = '';
+        if (books && books.length > 0) {
+            booksHTML = '<div class="row g-3 mt-2">';
+            books.forEach(book => {
+                const imageUrl = book.image_url || '';
+                const imageHTML = imageUrl 
+                    ? `<img src="${imageUrl}" class="card-img-top" alt="${book.title}" style="height: 150px; object-fit: cover;">`
+                    : `<div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;"><i class="fa-solid fa-book fa-3x text-white"></i></div>`;
+                
+                booksHTML += `
+                    <div class="col-md-6">
+                        <div class="card book-card-mini shadow-sm h-100" onclick="window.location.href='/user/book/${book.id}/'">
+                            ${imageHTML}
+                            <div class="card-body">
+                                <h6 class="card-title">${book.title}</h6>
+                                <p class="card-text text-muted small mb-1">by ${book.author}</p>
+                                <p class="card-text">
+                                    <span class="badge bg-secondary">${book.category}</span>
+                                    ${book.available_copies > 0 
+                                        ? `<span class="badge bg-success ms-1">${book.available_copies} available</span>` 
+                                        : '<span class="badge bg-danger ms-1">Unavailable</span>'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            booksHTML += '</div>';
+        }
+        
+        const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        
+        messageDiv.innerHTML = `
+            <div class="d-flex align-items-start">
+                <div class="bot-avatar me-3">
+                    <i class="fa-solid fa-robot fa-2x text-primary"></i>
+                </div>
+                <div class="message-content flex-grow-1">
+                    <div class="message-bubble bg-white p-3 rounded shadow-sm">
+                        <p class="mb-2"><strong>${message}</strong></p>
+                        ${booksHTML}
+                    </div>
+                    <small class="text-muted mt-1 d-block">${timestamp}</small>
+                </div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const query = chatInput.value.trim();
+        if (!query) return;
+        
+        // Add user message
+        addMessage(query, true);
+        
+        // Clear input
+        chatInput.value = '';
+        
+        // Disable form
+        sendBtn.disabled = true;
+        chatInput.disabled = true;
+        
+        // Add loading message
+        addLoadingMessage();
+        
+        // Send request
+        fetch('/user/chatbot/query/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ query: query })
+        })
+        .then(response => response.json())
+        .then(data => {
+            removeLoadingMessage();
+            
+            if (data.success) {
+                if (data.books && data.books.length > 0) {
+                    displayBooks(data.books, data.message);
+                } else {
+                    addMessage(data.message || 'I couldn\'t find any books matching your query.');
+                }
+            } else {
+                addMessage(data.message || 'Sorry, I encountered an error. Please try again.');
+            }
+        })
+        .catch(error => {
+            removeLoadingMessage();
+            addMessage('Sorry, I encountered an error. Please try again.');
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            // Re-enable form
+            sendBtn.disabled = false;
+            chatInput.disabled = false;
+            chatInput.focus();
+        });
+    });
+    
+    // Focus input on load
+    chatInput.focus();
+});
+</script>
+{% endblock %}
+

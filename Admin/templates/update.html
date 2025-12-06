@@ -7,7 +7,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card shadow-sm">
-            <div class="card-header bg-warning text-dark">
+            <div class="card-header" style="background-color: #D4AF37; color: #2C2C2C; border-bottom: 3px solid #004B49;">
                 <h5 class="mb-0">
                     <i class="fa-solid fa-edit me-2"></i>Update Book
                 </h5>
@@ -48,22 +48,50 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Available Copies <span class="text-danger">*</span></label>
-                            <input type="number" name="available_copies" class="form-control" value="{{ book.available_copies }}" min="0" required>
+                            <label class="form-label">Category <span class="text-danger">*</span></label>
+                            <select name="category" class="form-select" required>
+                                <option value="Fiction" {% if book.category == 'Fiction' %}selected{% endif %}>Fiction</option>
+                                <option value="Non-Fiction" {% if book.category == 'Non-Fiction' %}selected{% endif %}>Non-Fiction</option>
+                                <option value="Science Fiction" {% if book.category == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                                <option value="Fantasy" {% if book.category == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                                <option value="Mystery" {% if book.category == 'Mystery' %}selected{% endif %}>Mystery</option>
+                                <option value="Romance" {% if book.category == 'Romance' %}selected{% endif %}>Romance</option>
+                                <option value="History" {% if book.category == 'History' %}selected{% endif %}>History</option>
+                                <option value="Biography" {% if book.category == 'Biography' %}selected{% endif %}>Biography</option>
+                                <option value="Science" {% if book.category == 'Science' %}selected{% endif %}>Science</option>
+                                <option value="Technology" {% if book.category == 'Technology' %}selected{% endif %}>Technology</option>
+                                <option value="Programming" {% if book.category == 'Programming' %}selected{% endif %}>Programming</option>
+                                <option value="Business" {% if book.category == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Education" {% if book.category == 'Education' %}selected{% endif %}>Education</option>
+                                <option value="Philosophy" {% if book.category == 'Philosophy' %}selected{% endif %}>Philosophy</option>
+                                <option value="Literature" {% if book.category == 'Literature' %}selected{% endif %}>Literature</option>
+                                <option value="Other" {% if book.category == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Book Image</label>
-                            <input type="file" name="image" class="form-control" accept="image/*">
-                            <small class="text-muted">Leave empty to keep current image</small>
+                            <label class="form-label">Available Copies <span class="text-danger">*</span></label>
+                            <input type="number" name="available_copies" class="form-control" value="{{ book.available_copies }}" min="0" required>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Enter a brief description of the book">{{ book.description|default:'' }}</textarea>
+                        <small class="text-muted">This helps the chatbot provide better recommendations</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Book Image</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">Leave empty to keep current image</small>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4">
                         <a href="{% url 'admin' %}" class="btn btn-secondary">
                             <i class="fa-solid fa-times me-2"></i>Cancel
                         </a>
-                        <button type="submit" class="btn btn-warning">
+                        <button type="submit" class="btn" style="background-color: #D4AF37; color: #2C2C2C;">
                             <i class="fa-solid fa-save me-2"></i>Update Book
                         </button>
                     </div>

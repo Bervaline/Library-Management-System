@@ -15,11 +15,32 @@ class Member(models.Model):
     
 # Create your models here.
 class Book(models.Model):
+    CATEGORY_CHOICES = (
+        ('Fiction', 'Fiction'),
+        ('Non-Fiction', 'Non-Fiction'),
+        ('Science Fiction', 'Science Fiction'),
+        ('Fantasy', 'Fantasy'),
+        ('Mystery', 'Mystery'),
+        ('Romance', 'Romance'),
+        ('History', 'History'),
+        ('Biography', 'Biography'),
+        ('Science', 'Science'),
+        ('Technology', 'Technology'),
+        ('Programming', 'Programming'),
+        ('Business', 'Business'),
+        ('Education', 'Education'),
+        ('Philosophy', 'Philosophy'),
+        ('Literature', 'Literature'),
+        ('Other', 'Other'),
+    )
+    
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=100)
     isbn = models.CharField(max_length=13, unique=True)
     published_date = models.DateField()
     available_copies = models.IntegerField(default=0)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='Other')
+    description = models.TextField(blank=True, null=True, help_text="Brief description of the book")
     
     image = models.ImageField(upload_to='book_images/', blank=True, null=True)
 
