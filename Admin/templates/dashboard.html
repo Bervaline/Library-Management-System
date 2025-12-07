@@ -96,6 +96,12 @@
                             {{ return_rate|floatformat:1 }}%
                         </span>
                     </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-clock me-2"></i>Pending Requests</span>
+                        <span class="badge rounded-pill" style="background-color: #D4AF37; color: #2C2C2C;">
+                            {{ pending_requests }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,40 +127,42 @@
                     <a href="{% url 'transactions' %}" class="btn" style="background-color: #004B49; color: white;">
                         <i class="fa-solid fa-list me-2"></i>View All Transactions
                     </a>
+                    <a href="{% url 'book_requests' %}" class="btn" style="background-color: #D4AF37; color: #2C2C2C;">
+                        <i class="fa-solid fa-clock me-2"></i>Book Requests
+                        {% if pending_requests %}
+                            <span class="badge bg-danger ms-1">{{ pending_requests }}</span>
+                        {% endif %}
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Recent Transactions -->
 <div class="row">
-    <div class="col-12">
+    <!-- Recent Transactions -->
+    <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #004B49; color: white;">
-                <h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Recent Transactions</h5>
+                <h5 class="mb-0"><i class="fa-solid fa-receipt me-2"></i>Recent Transactions</h5>
                 <a href="{% url 'transactions' %}" class="btn btn-sm" style="background-color: #D4AF37; color: #2C2C2C; border: none;">View All</a>
             </div>
             <div class="card-body">
                 {% if recent_transactions %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-sm">
                         <thead>
                             <tr>
                                 <th>Member</th>
                                 <th>Book</th>
-                                <th>Issue Date</th>
-                                <th>Return Date</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for transaction in recent_transactions %}
                             <tr>
-                                <td>{{ transaction.member.full_name }}</td>
-                                <td>{{ transaction.book.title }}</td>
-                                <td>{{ transaction.issue_date }}</td>
-                                <td>{{ transaction.return_date|default:"--" }}</td>
+                                <td><small>{{ transaction.member.full_name }}</small></td>
+                                <td><small>{{ transaction.book.title }}</small></td>
                                 <td>
                                     {% if transaction.status == "Issued" %}
                                         <span class="badge bg-warning">Issued</span>
@@ -170,7 +178,52 @@
                 {% else %}
                 <p class="text-center text-muted py-4">
                     <i class="fa-solid fa-inbox fa-2x mb-2"></i><br>
-                    No transactions yet.
+                    <small>No transactions yet.</small>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Pending Requests -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #004B49; color: white;">
+                <h5 class="mb-0"><i class="fa-solid fa-clock me-2"></i>Pending Requests</h5>
+                <a href="{% url 'book_requests' %}" class="btn btn-sm" style="background-color: #D4AF37; color: #2C2C2C; border: none;">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_requests %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Book</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in recent_requests %}
+                            <tr>
+                                <td><small>{{ req.member.full_name }}</small></td>
+                                <td><small>{{ req.book.title }}</small></td>
+                                <td><small>{{ req.request_date|date:"M d" }}</small></td>
+                                <td>
+                                    <a href="{% url 'approve_request' req.id %}" class="btn btn-sm" style="background-color: #28a745; color: white; padding: 2px 8px; font-size: 0.75rem;">
+                                        Approve
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fa-solid fa-check-circle fa-2x mb-2"></i><br>
+                    <small>No pending requests.</small>
                 </p>
                 {% endif %}
             </div>

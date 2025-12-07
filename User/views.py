@@ -7,8 +7,9 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import json
 
-from Admin.models import Book, Member, Transaction
+from Admin.models import Book, Member, Transaction, BookRequest
 from .chatbot import BookRecommendationChatbot
+from .utils import get_or_create_member
 
 
 def home(request):
@@ -37,22 +38,29 @@ def book_detail(request, id):
     # Check if user has this book issued
     user_has_book = False
     user_transaction = None
+    pending_request = None
+    
     if request.user.is_authenticated:
-        try:
-            member = Member.objects.get(user=request.user)
-            user_transaction = Transaction.objects.filter(
-                member=member,
-                book=book,
-                status='Issued'
-            ).first()
-            user_has_book = user_transaction is not None
-        except Member.DoesNotExist:
-            pass
+        member = get_or_create_member(request.user)
+        user_transaction = Transaction.objects.filter(
+            member=member,
+            book=book,
+            status='Issued'
+        ).first()
+        user_has_book = user_transaction is not None
+        
+        # Check for pending request
+        pending_request = BookRequest.objects.filter(
+            member=member,
+            book=book,
+            status='Pending'
+        ).first()
     
     context = {
         'book': book,
         'user_has_book': user_has_book,
         'user_transaction': user_transaction,
+        'pending_request': pending_request,
     }
     return render(request, 'user/book_detail.html', context)
 
@@ -148,54 +156,57 @@ def user_logout(request):
 @login_required
 def my_books(request):
     """View user's issued books"""
-    try:
-        member = Member.objects.get(user=request.user)
-        transactions = Transaction.objects.filter(
-            member=member,
-            status='Issued'
-        ).order_by('-issue_date')
-        
-        context = {
-            'transactions': transactions,
-            'member': member,
-        }
-    except Member.DoesNotExist:
-        messages.warning(request, 'Member profile not found. Please contact admin.')
-        return redirect('user_home')
+    member = get_or_create_member(request.user, request)
+    transactions = Transaction.objects.filter(
+        member=member,
+        status='Issued'
+    ).order_by('-issue_date')
+    
+    context = {
+        'transactions': transactions,
+        'member': member,
+    }
     
     return render(request, 'user/my_books.html', context)
 
 
 @login_required
+def my_requests(request):
+    """View user's book requests"""
+    member = get_or_create_member(request.user, request)
+    requests = BookRequest.objects.filter(
+        member=member
+    ).order_by('-request_date')
+    
+    context = {
+        'requests': requests,
+        'member': member,
+    }
+    
+    return render(request, 'user/my_requests.html', context)
+
+
+@login_required
 def my_transactions(request):
     """View all user's transactions (issued and returned)"""
-    try:
-        member = Member.objects.get(user=request.user)
-        transactions = Transaction.objects.filter(
-            member=member
-        ).order_by('-issue_date')
-        
-        context = {
-            'transactions': transactions,
-            'member': member,
-        }
-    except Member.DoesNotExist:
-        messages.warning(request, 'Member profile not found. Please contact admin.')
-        return redirect('user_home')
+    member = get_or_create_member(request.user)
+    transactions = Transaction.objects.filter(
+        member=member
+    ).order_by('-issue_date')
+    
+    context = {
+        'transactions': transactions,
+        'member': member,
+    }
     
     return render(request, 'user/my_transactions.html', context)
 
 
 @login_required
 def request_book(request, id):
-    """Request/Issue a book"""
+    """Request a book (creates pending request)"""
     book = get_object_or_404(Book, id=id)
-    
-    try:
-        member = Member.objects.get(user=request.user)
-    except Member.DoesNotExist:
-        messages.error(request, 'Member profile not found. Please contact admin.')
-        return redirect('user_home')
+    member = get_or_create_member(request.user, request)
     
     # Check if book is available
     if book.available_copies <= 0:
@@ -213,17 +224,28 @@ def request_book(request, id):
         messages.warning(request, 'You have already issued this book!')
         return redirect('book_detail', id=id)
     
-    # Create transaction
+    # Check if user already has a pending request for this book
+    existing_request = BookRequest.objects.filter(
+        member=member,
+        book=book,
+        status='Pending'
+    ).first()
+    
+    if existing_request:
+        messages.info(request, 'You already have a pending request for this book. Please wait for admin approval.')
+        return redirect('book_detail', id=id)
+    
+    # Create book request (pending)
     try:
-        Transaction.objects.create(
+        BookRequest.objects.create(
             member=member,
             book=book,
-            status='Issued'
+            status='Pending'
         )
-        messages.success(request, f'Book "{book.title}" issued successfully!')
-        return redirect('my_books')
+        messages.success(request, f'Book request for "{book.title}" submitted successfully! It is now pending admin approval.')
+        return redirect('my_requests')
     except Exception as e:
-        messages.error(request, f'Error issuing book: {str(e)}')
+        messages.error(request, f'Error submitting request: {str(e)}')
         return redirect('book_detail', id=id)
 
 
@@ -231,16 +253,12 @@ def request_book(request, id):
 def return_book(request, id):
     """Return a book"""
     transaction = get_object_or_404(Transaction, id=id)
+    member = get_or_create_member(request.user)
     
     # Verify the transaction belongs to the user
-    try:
-        member = Member.objects.get(user=request.user)
-        if transaction.member != member:
-            messages.error(request, 'You are not authorized to return this book!')
-            return redirect('my_books')
-    except Member.DoesNotExist:
-        messages.error(request, 'Member profile not found.')
-        return redirect('user_home')
+    if transaction.member != member:
+        messages.error(request, 'You are not authorized to return this book!')
+        return redirect('my_books')
     
     if transaction.status == 'Issued':
         transaction.mark_returned()
@@ -254,24 +272,20 @@ def return_book(request, id):
 @login_required
 def profile(request):
     """User profile page"""
-    try:
-        member = Member.objects.get(user=request.user)
-        
-        # Statistics
-        issued_count = Transaction.objects.filter(member=member, status='Issued').count()
-        returned_count = Transaction.objects.filter(member=member, status='Returned').count()
-        total_transactions = Transaction.objects.filter(member=member).count()
-        
-        context = {
-            'member': member,
-            'user': request.user,
-            'issued_count': issued_count,
-            'returned_count': returned_count,
-            'total_transactions': total_transactions,
-        }
-    except Member.DoesNotExist:
-        messages.warning(request, 'Member profile not found.')
-        return redirect('user_home')
+    member = get_or_create_member(request.user, request)
+    
+    # Statistics
+    issued_count = Transaction.objects.filter(member=member, status='Issued').count()
+    returned_count = Transaction.objects.filter(member=member, status='Returned').count()
+    total_transactions = Transaction.objects.filter(member=member).count()
+    
+    context = {
+        'member': member,
+        'user': request.user,
+        'issued_count': issued_count,
+        'returned_count': returned_count,
+        'total_transactions': total_transactions,
+    }
     
     return render(request, 'user/profile.html', context)
 
@@ -279,11 +293,7 @@ def profile(request):
 @login_required
 def update_profile(request):
     """Update user profile"""
-    try:
-        member = Member.objects.get(user=request.user)
-    except Member.DoesNotExist:
-        messages.error(request, 'Member profile not found.')
-        return redirect('user_home')
+    member = get_or_create_member(request.user)
     
     if request.method == 'POST':
         try:

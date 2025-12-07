@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.db.models import Q
 
-from Admin.models import Book, Member, Transaction
+from Admin.models import Book, Member, Transaction, BookRequest
 
 # Create your views here.
 def admin(request):
@@ -84,6 +84,7 @@ def dashboard(request):
     issued_books = Transaction.objects.filter(status="Issued").count()
     returned_books = Transaction.objects.filter(status="Returned").count()
     total_transactions = Transaction.objects.count()
+    pending_requests = BookRequest.objects.filter(status="Pending").count()
     
     # Calculate return rate
     return_rate = 0
@@ -92,6 +93,9 @@ def dashboard(request):
     
     # Recent transactions
     recent_transactions = Transaction.objects.all().order_by('-issue_date')[:5]
+    
+    # Recent pending requests
+    recent_requests = BookRequest.objects.filter(status="Pending").order_by('-request_date')[:5]
     
     # Books with low stock (less than 5 copies)
     low_stock_books = Book.objects.filter(available_copies__lt=5).count()
@@ -105,6 +109,8 @@ def dashboard(request):
         'recent_transactions': recent_transactions,
         'low_stock_books': low_stock_books,
         'return_rate': return_rate,
+        'pending_requests': pending_requests,
+        'recent_requests': recent_requests,
     }
     return render(request, 'dashboard.html', context)
 
@@ -240,5 +246,99 @@ def delete_transaction(request, id):
     t.delete()
     messages.success(request, 'Transaction deleted successfully!')
     return redirect('transactions')
+
+
+def book_requests(request):
+    """View all book requests"""
+    status_filter = request.GET.get('status', 'Pending')
+    
+    requests = BookRequest.objects.all().order_by('-request_date')
+    
+    if status_filter:
+        requests = requests.filter(status=status_filter)
+    
+    context = {
+        'requests': requests,
+        'status_filter': status_filter,
+        'pending_count': BookRequest.objects.filter(status='Pending').count(),
+    }
+    return render(request, 'book_requests.html', context)
+
+
+def approve_request(request, id):
+    """Approve a book request and create transaction"""
+    book_request = get_object_or_404(BookRequest, id=id)
+    
+    if book_request.status != 'Pending':
+        messages.warning(request, 'This request has already been processed.')
+        return redirect('book_requests')
+    
+    # Check if book is still available
+    if book_request.book.available_copies <= 0:
+        messages.error(request, 'Book is no longer available. Cannot approve request.')
+        book_request.status = 'Rejected'
+        book_request.admin_notes = 'Book no longer available'
+        book_request.save()
+        return redirect('book_requests')
+    
+    # Check if member already has this book issued
+    existing_transaction = Transaction.objects.filter(
+        member=book_request.member,
+        book=book_request.book,
+        status='Issued'
+    ).first()
+    
+    if existing_transaction:
+        messages.warning(request, 'Member already has this book issued.')
+        book_request.status = 'Rejected'
+        book_request.admin_notes = 'Member already has this book issued'
+        book_request.save()
+        return redirect('book_requests')
+    
+    try:
+        # Create transaction
+        transaction = Transaction.objects.create(
+            member=book_request.member,
+            book=book_request.book,
+            status='Issued',
+            book_request=book_request
+        )
+        
+        # Update request status
+        book_request.status = 'Approved'
+        book_request.save()
+        
+        messages.success(request, f'Request approved! Book "{book_request.book.title}" issued to {book_request.member.full_name}.')
+    except Exception as e:
+        messages.error(request, f'Error approving request: {str(e)}')
+    
+    return redirect('book_requests')
+
+
+def reject_request(request, id):
+    """Reject a book request"""
+    book_request = get_object_or_404(BookRequest, id=id)
+    
+    if book_request.status != 'Pending':
+        messages.warning(request, 'This request has already been processed.')
+        return redirect('book_requests')
+    
+    if request.method == 'POST':
+        admin_notes = request.POST.get('admin_notes', '')
+        book_request.status = 'Rejected'
+        book_request.admin_notes = admin_notes
+        book_request.save()
+        messages.success(request, 'Request rejected successfully.')
+        return redirect('book_requests')
+    
+    return render(request, 'reject_request.html', {'book_request': book_request})
+
+
+def delete_request(request, id):
+    """Delete a book request"""
+    book_request = get_object_or_404(BookRequest, id=id)
+    book_request.delete()
+    messages.success(request, 'Request deleted successfully!')
+    return redirect('book_requests')
 
 

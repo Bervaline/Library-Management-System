@@ -13,6 +13,7 @@ urlpatterns = [
     
     # User features
     path('my-books/', views.my_books, name='my_books'),
+    path('my-requests/', views.my_requests, name='my_requests'),
     path('my-transactions/', views.my_transactions, name='my_transactions'),
     path('request-book/<int:id>/', views.request_book, name='request_book'),
     path('return-book/<int:id>/', views.return_book, name='return_book'),

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from Admin.models import Book, Member, Transaction
+from Admin.models import Book, Member, Transaction, BookRequest
 
 
 # Register your models here.
@@ -21,3 +21,10 @@ class TransactionAdmin(admin.ModelAdmin):
     list_filter = ('status', 'issue_date')
     search_fields = ('member__full_name', 'book__title')
     date_hierarchy = 'issue_date'
+
+@admin.register(BookRequest)
+class BookRequestAdmin(admin.ModelAdmin):
+    list_display = ('member', 'book', 'request_date', 'status')
+    list_filter = ('status', 'request_date')
+    search_fields = ('member__full_name', 'book__title')
+    date_hierarchy = 'request_date'

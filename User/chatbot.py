@@ -13,10 +13,8 @@ class BookRecommendationChatbot:
         self.user = user
         self.member = None
         if user and user.is_authenticated:
-            try:
-                self.member = Member.objects.get(user=user)
-            except Member.DoesNotExist:
-                pass
+            from .utils import get_or_create_member
+            self.member = get_or_create_member(user)
     
     def process_query(self, query):
         """Process user query and return recommendations"""

@@ -50,6 +50,27 @@ class Book(models.Model):
     
 
 
+class BookRequest(models.Model):
+    """Model to track book requests from users"""
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    )
+
+    member = models.ForeignKey(Member, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    request_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    admin_notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-request_date']
+
+    def __str__(self):
+        return f"{self.member.full_name} - {self.book.title} ({self.status})"
+
+
 class Transaction(models.Model):
     STATUS_CHOICES = (
         ('Issued', 'Issued'),
@@ -58,6 +79,7 @@ class Transaction(models.Model):
 
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    book_request = models.OneToOneField(BookRequest, on_delete=models.SET_NULL, null=True, blank=True)
 
     issue_date = models.DateField(auto_now_add=True)
     return_date = models.DateField(blank=True, null=True)
